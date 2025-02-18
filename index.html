@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Unity WebGL Firebase</title>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js"></script>
+
+    <script>
+        // Initialize Firebase
+        var firebaseConfig = {
+            apiKey: "AIzaSyCR1il349vo2hvR_2q5zoziKbC34WtC4Aw",
+            authDomain: "fir-webgl-d1421.firebaseapp.com",
+            databaseURL: "https://fir-webgl-d1421-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "fir-webgl-d1421",
+            storageBucket: "fir-webgl-d1421.firebasestorage.app",
+            messagingSenderId: "54280867114",
+            appId: "1:54280867114:web:8aed568e968692d4a5e253"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        // Authenticate User Anonymously (For WebGL)
+        function SignInAnonymously() {
+            let storedUserId = localStorage.getItem("firebaseUserId");
+
+            if (storedUserId) {
+                console.log("WebGL Using Stored Firebase UID: " + storedUserId);
+                SendUserIdToUnity(storedUserId);
+            } else {
+                firebase.auth().signInAnonymously()
+                .then((userCredential) => {
+                    var user = userCredential.user;
+                    console.log("WebGL Signed in as:", user.uid);
+                    localStorage.setItem("firebaseUserId", user.uid); // Store for later
+                    SendUserIdToUnity(user.uid);
+                })
+                .catch((error) => {
+                    console.error("WebGL Firebase Auth Error:", error);
+                });
+            }
+        }
+
+        //Send userId to Unity
+        function SendUserIdToUnity(userId) {
+            gameInstance.SendMessage('FirebaseAuthManager', 'OnFirebaseUserIdReceived', userId);
+        }
+
+        // Automatically sign in when the page loads
+        window.onload = function() {
+            SignInAnonymously();
+        };
+    </script>
+</head>
+<body>
+    <script>
+        var gameInstance = UnityLoader.instantiate("unityContainer", "Build/WebGLBuild.json", { onProgress: UnityProgress });
+    </script>
+    <div id="unityContainer" style="width: 100%; height: 100%;"></div>
+</body>
+</html>
